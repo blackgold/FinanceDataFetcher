@@ -9,6 +9,7 @@ import (
 	"os"
 	"sqlite"
 	"strconv"
+	"time"
 )
 
 type QuoteStruct struct {
@@ -58,16 +59,16 @@ func readSymbols(file string) []string {
 
 func Run() {
 
-	start := [5]string{"2016-01-01", "2015-01-01", "2014-01-01", "2013-01-01", "2012-01-01"}
-	end := [5]string{"2016-02-29", "2015-12-31", "2014-12-31", "2013-12-31", "2012-12-31"}
-	//symbols := readSymbols("symbols/symbols.txt")
-	symbols := [2]string{"YHOO", "BABA"}
+	start := [10]string{"2016-01-01", "2015-01-01", "2014-01-01", "2013-01-01", "2012-01-01", "2011-01-01", "2010-01-01", "2009-01-01", "2008-01-01", "2007-01-01", "2006-01-01"}
+	end := [10]string{"2016-02-29", "2015-12-31", "2014-12-31", "2013-12-31", "2012-12-31", "2011-12-31", "2010-12-31", "2009-12-31", "2008-12-31", "2007-12-31", "2006-12-31"}
+	rate := time.Minute / 32 // yql is ratemited for 2000 queries per hour per ip
+	throttle := time.Tick(rate)
 	for _, symbol := range symbols {
 		var db sqlite.Sqlite
 		db.Init("hist.db")
 		defer db.Destroy()
 		db.CreateHistTable(symbol + "history")
-		for i := 0; i < 5; i++ {
+		for i := 0; i < 10; i++ {
 			var baseurl string = "https://query.yahooapis.com/v1/public/yql?q="
 			var query string = "select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22" + symbol + "%22%20and%20startDate%20%3D%20%22" + start[i] + "%22%20and%20endDate%20%3D%20%22" + end[i] + "%22&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
 
@@ -98,7 +99,9 @@ func Run() {
 				}
 			} else {
 				log.Println("Error : "+symbol+" "+start[i]+"  "+end[i]+" ", response.Query.Count)
+				break
 			}
+			<-throttle
 		}
 	}
 }
