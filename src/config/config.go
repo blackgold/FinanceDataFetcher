@@ -1,17 +1,17 @@
 package config
 
 import (
-        "encoding/json"
-        "io/ioutil"
-       )
+	"encoding/json"
+	"io/ioutil"
+)
 
 type Config struct {
-     StartDates      []string `json:"StartDates"`
-     EndDates        []string `json:"EndDates"`
-     SymbolsFile     string   `json:"SymbolsFile"`
-     DbFileName      string   `json:"DbFileName"`	
-     Qps	     int      `json:"Qps"`
-
+	StartDates  []string `json:"StartDates"`
+	EndDates    []string `json:"EndDates"`
+	SymbolsFile string   `json:"SymbolsFile"`
+	DbFileName  string   `json:"DbFileName"`
+	Qps         int      `json:"Qps"`
+	Type        string   `json:"Type"`
 }
 
 func Parse(file string) (*Config, error) {

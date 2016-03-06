@@ -17,6 +17,37 @@ type DbHistTable struct {
 	Volume   int64
 }
 
+type DbDailyTable struct {
+	Date                                        string
+	Ask                                         float64
+	AverageDailyVolume                          int64
+	Bid                                         float64
+	BookValue                                   float64
+	EarningsShare                               float64
+	DaysLow                                     float64
+	DaysHigh                                    float64
+	YearLow                                     float64
+	YearHigh                                    float64
+	MarketCapitalization                        string
+	EBITDA                                      string
+	ChangeFromYearLow                           float64
+	PercentChangeFromYearLow                    string
+	ChangeFromYearHigh                          float64
+	PercentChangeFromYearHigh                   string
+	LastTradePriceOnly                          float64
+	FiftydayMovingAverage                       float64
+	TwoHundreddayMovingAverage                  float64
+	ChangeFromTwoHundreddayMovingAverage        float64
+	PercentChangeFromTwoHundreddayMovingAverage string
+	ChangeFromFiftydayMovingAverage             float64
+	PercentChangeFromFiftydayMovingAverage      string
+	PEGRatio                                    float64
+	ShortRatio                                  float64
+	Volume                                      int64
+	DividendYield                               float64
+	PercentChange                               string
+}
+
 type Sqlite struct {
 	dbmap *gorp.DbMap
 }
