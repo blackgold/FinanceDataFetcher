@@ -72,7 +72,7 @@ func RunHistorical(cfg *config.Config) {
 					adj, _ := strconv.ParseFloat(quote.AdjClose, 64)
 					vol, _ := strconv.ParseInt(quote.Volume, 10, 64)
 					record := &sqlite.DbHistTable{Date: quote.Date, Open: open, Close: lose, High: high, Low: low, Volume: vol, AdjClose: adj}
-					db.Insert(record)
+					db.InsertHist(record)
 				}
 			} else {
 				log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", response.Query.Count)
@@ -86,48 +86,56 @@ func RunHistorical(cfg *config.Config) {
 
 func RunDaily(cfg *config.Config) {
 
-	symbols := readSymbols(cfg.SymbolsFile)
+	symbol := readSymbols(cfg.SymbolsFile)
 	rate := time.Minute / time.Duration(cfg.Qps)
 	throttle := time.Tick(rate)
 
-	for i := 0; i < len(symbols); {
+	for i := 0; i < len(symbol); i += 5 {
 		var selection string = "(%22"
 		var selections string
-		for j := i; j < i+5; j++ {
-			if j == i+4 {
+		var limit = 0
+                if i+5 < len(symbol) {
+                        limit = 5
+                } else {
+                        limit = len(symbol) - i
+                }
+		for j := i; j < i+limit ; j++ {
+			if j == i+limit-1 {
 				selection += symbol[j] + "%22)"
 			} else {
-				selections += "," + symbol[j]
+				selection += symbol[j] + "%22%2C%22"
 			}
+ 			selections += symbol[j] + ","
 		}
 		var baseurl string = "https://query.yahooapis.com/v1/public/yql?q="
 		var query string = "select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20" + selection + "&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
 		resp, err := http.Get(baseurl + query)
 		if err != nil {
-			log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
+			log.Println("Error : "+symbol[i]+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
 			continue
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
+			log.Println("Error : "+symbol[i]+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
 			continue
 		}
+		log.Println(string(body[:]))
 		var response DailyResponse
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
+			log.Println("Error : "+symbol[i]+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
 			continue
 		}
 		if response.Query.Count > 0 {
 			for _, quote := range response.Query.Results.Quotes {
-				var db sqlite.Sqlite
-				db.Init(cfg.DbFileName)
-				defer db.Destroy()
-				db.CreateDailyTable(quote.Symbol + "daily")
+				//var db sqlite.Sqlite
+				//db.Init(cfg.DbFileName)
+				//defer db.Destroy()
+				//db.CreateDailyTable(quote.Symbol + "daily")
 				ask, _ := strconv.ParseFloat(quote.Ask, 64)
-				averageDailyVolume, _ := strconv.ParseFloat(quote.AverageDailyVolume, 64)
+				averageDailyVolume, _ := strconv.ParseInt(quote.AverageDailyVolume,10, 64)
 				bid, _ := strconv.ParseFloat(quote.Bid, 64)
 				bookValue, _ := strconv.ParseFloat(quote.BookValue, 64)
 				earningsShare, _ := strconv.ParseFloat(quote.EarningsShare, 64)
@@ -137,7 +145,6 @@ func RunDaily(cfg *config.Config) {
 				yearHigh, _ := strconv.ParseFloat(quote.ChangeFromYearLow, 64)
 				changeFromYearLow, _ := strconv.ParseFloat(quote.ChangeFromYearLow, 64)
 				changeFromYearHigh, _ := strconv.ParseFloat(quote.ChangeFromYearHigh, 64)
-				lastTradePriceOnly, _ := strconv.ParseFloat(quote.LastTradePriceOnly, 64)
 				fiftydayMovingAverage, _ := strconv.ParseFloat(quote.FiftydayMovingAverage, 64)
 				pEGRatio, _ := strconv.ParseFloat(quote.PEGRatio, 64)
 				shortRatio, _ := strconv.ParseFloat(quote.ShortRatio, 64)
@@ -146,8 +153,9 @@ func RunDaily(cfg *config.Config) {
 				twoHundreddayMovingAverage, _ := strconv.ParseFloat(quote.TwoHundreddayMovingAverage, 64)
 				changeFromTwoHundreddayMovingAverage, _ := strconv.ParseFloat(quote.ChangeFromTwoHundreddayMovingAverage, 64)
 				changeFromFiftydayMovingAverage, _ := strconv.ParseFloat(quote.ChangeFromFiftydayMovingAverage, 64)
-
-				record := &sqlite.DbDailyTable{Date: quote.Date,
+				t := time.Now().Local()
+    				date := t.Format("2006-01-02")
+				record := &sqlite.DbDailyTable{Date: date,
 					Ask:                                         ask,
 					AverageDailyVolume:                          averageDailyVolume,
 					Bid:                                         bid,
@@ -157,7 +165,7 @@ func RunDaily(cfg *config.Config) {
 					ShortRatio:                                  shortRatio,
 					Volume:                                      volume,
 					DividendYield:                               dividendYield,
-					PercentChange:                               quote.PercentChange,
+					ChangeinPercent:                             quote.ChangeinPercent,
 					DaysLow:                                     daysLow,
 					DaysHigh:                                    daysHigh,
 					YearLow:                                     yearLow,
@@ -168,14 +176,14 @@ func RunDaily(cfg *config.Config) {
 					PercentChangeFromYearLow:                    quote.PercentChangeFromYearLow,
 					ChangeFromYearHigh:                          changeFromYearHigh,
 					PercentChangeFromYearHigh:                   quote.PercentChangeFromYearHigh,
-					LastTradePriceOnly:                          lastTradePriceOnly,
 					FiftydayMovingAverage:                       fiftydayMovingAverage,
 					TwoHundreddayMovingAverage:                  twoHundreddayMovingAverage,
 					ChangeFromTwoHundreddayMovingAverage:        changeFromTwoHundreddayMovingAverage,
 					PercentChangeFromTwoHundreddayMovingAverage: quote.PercentChangeFromTwoHundreddayMovingAverage,
 					ChangeFromFiftydayMovingAverage:             changeFromFiftydayMovingAverage,
 					PercentChangeFromFiftydayMovingAverage:      quote.PercentChangeFromFiftydayMovingAverage}
-				db.Insert(record)
+				//db.InsertDaily(record)
+				log.Println(record)
 				log.Println("Done : ", quote.Symbol)
 			}
 		} else {
@@ -183,11 +191,6 @@ func RunDaily(cfg *config.Config) {
 			break
 		}
 		<-throttle
-		if i+5 < len(symbols) {
-			i += 5
-		} else {
-			i += len(symbols) - i
-		}
 	}
 
 }

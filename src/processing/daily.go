@@ -1,14 +1,14 @@
 package processing
 
 type DailyQuoteStruct struct {
-	Symbol                                      string `json:"Symbol"`
+	Ssymbol                                     string `json:"symbol"`
 	Ask                                         string `json:"Ask"`
 	AverageDailyVolume                          string `json:"AverageDailyVolume"`
 	Bid                                         string `json:"Bid"`
 	AskRealtime                                 string `json:"AskRealtime"`
 	BidRealtime                                 string `json:"BidRealtime"`
 	BookValue                                   string `json:"BookValue"`
-	ChangePercentChange                         string `json:"ChangePercentChange"`
+	ChangePercentChange                         string `json:"Change_PercentChange"`
 	Change                                      string `json:"Change"`
 	Commission                                  string `json:"Commission"`
 	Currency                                    string `json:"Currency"`
@@ -18,7 +18,7 @@ type DailyQuoteStruct struct {
 	LastTradeDate                               string `json:"LastTradeDate"`
 	TradeDate                                   string `json:"TradeDate"`
 	EarningsShare                               string `json:"EarningsShare"`
-	ErrorIndication                             string `json:"ErrorIndication"`
+	ErrorIndication                             string `json:"ErrorIndicationreturnedforsymbolchangedinvalid"`
 	EPSEstimateCurrentYear                      string `json:"EPSEstimateCurrentYear"`
 	EPSEstimateNextYear                         string `json:"EPSEstimateNextYear"`
 	EPSEstimateNextQuarter                      string `json:"EPSEstimateNextQuarter"`
@@ -41,7 +41,7 @@ type DailyQuoteStruct struct {
 	LastTradeRealtimeWithTime                   string `json:"LastTradeRealtimeWithTime"`
 	ChangePercentRealtime                       string `json:"ChangePercentRealtime"`
 	ChangeFromYearHigh                          string `json:"ChangeFromYearHigh"`
-	PercebtChangeFromYearHigh                   string `json:"PercebtChangeFromYearHigh"`
+	PercentChangeFromYearHigh                   string `json:"PercebtChangeFromYearHigh"`
 	LastTradeWithTime                           string `json:"LastTradeWithTime"`
 	LastTradePriceOnly                          string `json:"LastTradePriceOnly"`
 	HighLimit                                   string `json:"HighLimit"`
@@ -50,7 +50,7 @@ type DailyQuoteStruct struct {
 	DaysRangeRealtime                           string `json:"DaysRangeRealtime"`
 	FiftydayMovingAverage                       string `json:"FiftydayMovingAverage"`
 	TwoHundreddayMovingAverage                  string `json:"TwoHundreddayMovingAverage"`
-	ChngeFrmTwoHundredMvngAvrge                 string `json:"ChangeFromTwoHundreddayMovingAverage"`
+	ChangeFromTwoHundreddayMovingAverage                 string `json:"ChangeFromTwoHundreddayMovingAverage"`
 	Name                                        string `json:"Name"`
 	Notes                                       string `json:"Notes"`
 	Open                                        string `json:"Open"`
@@ -85,7 +85,6 @@ type DailyQuoteStruct struct {
 	ChangeFromFiftydayMovingAverage             string `json:"ChangeFromFiftydayMovingAverage"`
 	PercentChangeFromFiftydayMovingAverage      string `json:"PercentChangeFromFiftydayMovingAverage"`
 }
-
 type DailyResultsStruct struct {
 	Quotes []DailyQuoteStruct `json:"quote"`
 }
