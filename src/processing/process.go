@@ -37,11 +37,15 @@ func RunHistorical(cfg *config.Config) {
 	symbols := readSymbols(cfg.SymbolsFile)
 	rate := time.Minute / time.Duration(cfg.Qps)
 	throttle := time.Tick(rate)
+	timeout := time.Duration(30 * time.Second)
+	client := http.Client{
+    		Timeout: timeout,
+	}
 	for _, symbol := range symbols {
 		for i := 0; i < 10; i++ {
 			var baseurl string = "https://query.yahooapis.com/v1/public/yql?q="
 			var query string = "select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22" + symbol + "%22%20and%20startDate%20%3D%20%22" + cfg.StartDates[i] + "%22%20and%20endDate%20%3D%20%22" + cfg.EndDates[i] + "%22&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
-			resp, err := http.Get(baseurl + query)
+			resp, err := client.Get(baseurl + query)
 			if err != nil {
 				log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", err)
 				continue
@@ -71,7 +75,7 @@ func RunHistorical(cfg *config.Config) {
 				   log.Println("Failed creating file:",file,err)  
 				}
                                 if f != nil {
-                                        defer f.Close()
+                                        f.Close()
                                 }
 			} else {
 				log.Println("Error : "+symbol+" "+cfg.StartDates[i]+"  "+cfg.EndDates[i]+" ", response.Query.Count)
