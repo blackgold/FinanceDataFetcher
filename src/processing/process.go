@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net"
 	"os"
 	"sqlite"
 	"strconv"
@@ -39,6 +40,17 @@ func Historical(tasklist *[]*Task,cfg *config.Config) *[]*Task {
 	timeout := time.Duration(30 * time.Second)
 	client := http.Client{
     		Timeout: timeout,
+		Transport : &http.Transport{
+ 		        Proxy: http.ProxyFromEnvironment,
+        		Dial: (&net.Dialer{
+                		Timeout:   30 * time.Second,
+                		KeepAlive: 30 * time.Second,
+        		}).Dial,
+			DisableKeepAlives: false,
+			MaxIdleConnsPerHost: 64,
+			ResponseHeaderTimeout: 30 * time.Second,
+        		TLSHandshakeTimeout:   10 * time.Second,
+		},
 	}
 	for _, task:= range *tasklist {
 			var baseurl string = "https://query.yahooapis.com/v1/public/yql?q="
