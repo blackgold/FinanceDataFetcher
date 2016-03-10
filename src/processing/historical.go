@@ -25,3 +25,9 @@ type HistoricalQueryStruct struct {
 type HistoricalResponse struct {
 	Query HistoricalQueryStruct `json:"query"`
 }
+
+type Task struct {
+	Symbol	string
+	Start	string
+	End	string 
+}
