@@ -3,7 +3,10 @@ package main
 import (
 	"config"
 	"log"
+	"net"
+	"net/http"
 	"processing"
+	"time"
 )
 
 func main() {
@@ -11,9 +14,23 @@ func main() {
 	if err != nil {
 		log.Fatal("Error reading config", err)
 	}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			Dial: (&net.Dialer{
+				Timeout:   10 * time.Second,
+				KeepAlive: 10 * time.Second,
+			}).Dial,
+			DisableKeepAlives:     false,
+			MaxIdleConnsPerHost:   64,
+			ResponseHeaderTimeout: 10 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+		},
+	}
 	if cfg.Type == "Historical" {
-		processing.RunHistorical(cfg)
+		processing.RunHistorical(cfg, &client)
 	} else {
-		processing.RunDaily(cfg)
+		processing.RunDaily(cfg, &client)
 	}
 }

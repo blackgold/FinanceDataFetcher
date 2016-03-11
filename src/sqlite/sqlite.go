@@ -81,14 +81,14 @@ func (s *Sqlite) CreateHistTable(name string) error {
 }
 
 func (s *Sqlite) CreateDailyTable(name string) error {
-        tmp := s.dbmap.AddTableWithName(DbDailyTable{}, name).SetKeys(false, "Date")
-        tmp.ColMap("Date").SetMaxSize(10)
-        err := s.dbmap.CreateTablesIfNotExists()
-        if err != nil {
-                s.dbmap.Db.Close()
-                return err
-        }
-        return nil
+	tmp := s.dbmap.AddTableWithName(DbDailyTable{}, name).SetKeys(false, "Date")
+	tmp.ColMap("Date").SetMaxSize(10)
+	err := s.dbmap.CreateTablesIfNotExists()
+	if err != nil {
+		s.dbmap.Db.Close()
+		return err
+	}
+	return nil
 }
 
 func (s *Sqlite) InsertHist(value *DbHistTable) error {
@@ -101,10 +101,10 @@ func (s *Sqlite) InsertHist(value *DbHistTable) error {
 }
 
 func (s *Sqlite) InsertDaily(value *DbDailyTable) error {
-        err := s.dbmap.Insert(value)
-        if err != nil {
-                log.Println(err)
-                return err
-        }
-        return nil
+	err := s.dbmap.Insert(value)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }

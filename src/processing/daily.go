@@ -50,7 +50,7 @@ type DailyQuoteStruct struct {
 	DaysRangeRealtime                           string `json:"DaysRangeRealtime"`
 	FiftydayMovingAverage                       string `json:"FiftydayMovingAverage"`
 	TwoHundreddayMovingAverage                  string `json:"TwoHundreddayMovingAverage"`
-	ChangeFromTwoHundreddayMovingAverage                 string `json:"ChangeFromTwoHundreddayMovingAverage"`
+	ChangeFromTwoHundreddayMovingAverage        string `json:"ChangeFromTwoHundreddayMovingAverage"`
 	Name                                        string `json:"Name"`
 	Notes                                       string `json:"Notes"`
 	Open                                        string `json:"Open"`

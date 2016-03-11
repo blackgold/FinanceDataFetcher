@@ -2,7 +2,7 @@
   "StartDates"  : ["2016-01-01", "2015-01-01"],
   "EndDates"    : ["2016-12-31", "2015-12-31"],
   "SymbolsFile" : "symbols/symbols.txt",
-  "DbFileName"  : "hist.db",
+  "DbFileName"  : "daily.db",
   "Qps"         : 30,
-  "Type"	: "Historical"
+  "Type"	: "Daily"
 }
