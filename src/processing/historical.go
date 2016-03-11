@@ -30,4 +30,5 @@ type Task struct {
 	Symbol	string
 	Start	string
 	End	string 
+	Retry   int
 }

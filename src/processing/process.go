@@ -53,27 +53,31 @@ func Historical(tasklist *[]*Task,cfg *config.Config) *[]*Task {
 		},
 	}
 	for _, task:= range *tasklist {
+			if task.Retry > 3 {
+				log.Println("Error : " + task.Symbol + " " + task.Start + "  " + task.End + " ", err)
+				continue
+			}
 			var baseurl string = "https://query.yahooapis.com/v1/public/yql?q="
 			var query string = "select%20*%20from%20yahoo.finance.historicaldata%20where%20symbol%20%3D%20%22" + task.Symbol + "%22%20and%20startDate%20%3D%20%22" + task.Start + "%22%20and%20endDate%20%3D%20%22" + task.End + "%22&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
 			resp, err := client.Get(baseurl + query)
 			if err != nil {
+				task.Retry += 1
 				errorTasks = append(errorTasks, task)
-				log.Println("Error : " + task.Symbol + " " + task.Start + "  " + task.End + " ", err)
 				continue
 			}
 			defer resp.Body.Close()
 
 			body, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
+				task.Retry += 1
 				errorTasks = append(errorTasks, task)
-				log.Println("Error : " + task.Symbol + " " + task.Start + "  " + task.End + " ", err)
 				continue
 			}
 			var response HistoricalResponse
 			err = json.Unmarshal(body, &response)
 			if err != nil {
+				task.Retry += 1
 				errorTasks = append(errorTasks, task)
-				log.Println("Error : " + task.Symbol + " " + task.Start + "  " + task.End + " ", err)
 				continue
 			}
 			if response.Query.Count > 0 {
@@ -82,18 +86,16 @@ func Historical(tasklist *[]*Task,cfg *config.Config) *[]*Task {
     				if err == nil {
     				   _, err := f.Write(body)
 				   if err != nil {
+					task.Retry += 1
 					errorTasks = append(errorTasks, task)
-    				        log.Println("Failed writing to file", file)	
 				   }
 				} else {
-				   errorTasks = append(errorTasks, task)
-				   log.Println("Failed creating file:",file,err)  
+					task.Retry += 1
+				   	errorTasks = append(errorTasks, task)
 				}
                                 if f != nil {
                                         f.Close()
                                 }
-			} else {
-				log.Println("Error : " + task.Symbol + " " + task.Start + "  " + task.End + " " ,response.Query.Count)
 			}
 			<-throttle
 		log.Println("Done : ", task.Symbol)
@@ -106,11 +108,12 @@ func RunHistorical(cfg *config.Config) {
 	var tasklist []*Task
 	for _, symbol := range symbols {
 		for i:=0; i < len(cfg.StartDates) ;i ++ {
-			tasklist = append(tasklist,&Task{Symbol: symbol, Start: cfg.StartDates[i], End: cfg.EndDates[i]})
+			tasklist = append(tasklist,&Task{Symbol: symbol, Start: cfg.StartDates[i], End: cfg.EndDates[i], Retry: 0})
 		}
 	}
-	errorlist := Historical(&tasklist, cfg)
-	log.Println("ERRORLIST")
+	while len(tasklist) > 0 {
+		tasklist = Historical(&tasklist, cfg)
+	}
 	for _, task := range *errorlist {
 		log.Println(*task)
 	}
