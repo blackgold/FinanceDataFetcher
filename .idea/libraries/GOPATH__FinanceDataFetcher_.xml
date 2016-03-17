@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="GOPATH &lt;FinanceDataFetcher&gt;">
+    <CLASSES>
+      <root url="file://$USER_HOME$/go/src/httputil" />
+      <root url="file://$USER_HOME$/go/src/friends" />
+      <root url="file://$USER_HOME$/go/src/listenup" />
+      <root url="file://$USER_HOME$/go/src/plays" />
+      <root url="file://$USER_HOME$/go/src/golang.org" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <excluded>
+      <root url="file://$USER_HOME$/go/src/golang.org/x/exp/.git" />
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
+  </library>
+</component>
