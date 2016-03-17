@@ -112,6 +112,7 @@ func RunHistorical(cfg *config.Config, client *http.Client) {
 	}
 }
 
+// cannot exploit parallelism here because rate-limiting is per ip
 func HttpGet(query string, cfg *config.Config, client *http.Client) []string {
 	var successquotes []string
 	resp, err := client.Get(query)
@@ -246,13 +247,17 @@ func Daily(tasklist *[]*Task, cfg *config.Config, client *http.Client) []*Task {
 	return errorTasks
 }
 
+//TODO : implement using piepiline pattern
 func RunDaily(cfg *config.Config, client *http.Client) {
 	symbols := readSymbols(cfg.SymbolsFile)
 	var tasklist []*Task
 	for _, symbol := range symbols {
 		tasklist = append(tasklist, &Task{Symbol: symbol, Start: "", End: "", Retry: 0})
 	}
+	i := 3
 	for len(tasklist) > 0 {
 		tasklist = Daily(&tasklist, cfg, client)
+		time.Sleep(time.Duration(i*i)*time.Minute)
+		i += 1
 	}
 }
