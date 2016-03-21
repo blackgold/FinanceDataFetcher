@@ -179,6 +179,7 @@ func HttpGet(query string, cfg *config.Config, client *http.Client) []string {
 						successquotes = append(successquotes, quote.Symbol)
 						db.CreateDailyTable(quote.Symbol + "daily")
 						db.InsertDaily(record)
+						updateHistoryTable(quote)
 						log.Println("Done : ", quote.Symbol)
 					}
 				} else {
@@ -247,6 +248,41 @@ func Daily(tasklist *[]*Task, cfg *config.Config, client *http.Client) []*Task {
 	return errorTasks
 }
 
+func updateHistoryTable(quote DailyQuoteStruct)  {
+	var dbname string = ""
+
+	switch {
+		case quote.Symbol[0] >= 'A' || quote.Symbol[0] <= 'C':
+			dbname = "histoAC.db"
+		case quote.Symbol[0] >= 'D' || quote.Symbol[0] <= 'I':
+			dbname = "histoDI.db"
+		case quote.Symbol[0] >= 'J' || quote.Symbol[0] <= 'P' :
+			dbname = "histoJP.db"
+		case quote.Symbol[0] >= 'Q' || quote.Symbol[0] <= 'Z':
+			dbname = "histoQZ.db"
+	}
+
+	var db sqlite.Sqlite
+	db.Init(dbname)
+	defer db.Destroy()
+
+
+	o, _ := strconv.ParseFloat(quote.Open, 64)
+	c, _ := strconv.ParseFloat(quote.LastTradePriceOnly, 64)
+	h, _ := strconv.ParseFloat(quote.DaysHigh, 64)
+	l, _ := strconv.ParseFloat(quote.DaysLow, 64)
+	v, _ := strconv.ParseInt(quote.Volume,10, 64)
+	//a, _ := strconv.ParseFloat(quote.AdjClose,64)
+	t := time.Now().Local()
+	date := t.Format("2006-01-02")
+	record := &sqlite.DbHistTable{Date: date, Open: o,
+				Close: c, High: h, Low: l,
+				Volume: v, AdjClose: c}
+	//db.CreateHistTable(quote.Symbol + "daily")
+	db.InsertHist(record)
+}
+
+
 //TODO : implement using piepiline pattern
 func RunDaily(cfg *config.Config, client *http.Client) {
 	symbols := readSymbols(cfg.SymbolsFile)
@@ -257,6 +293,9 @@ func RunDaily(cfg *config.Config, client *http.Client) {
 	i := 3
 	for len(tasklist) > 0 {
 		tasklist = Daily(&tasklist, cfg, client)
+		if len(tasklist) == 0 {
+			break
+		}
 		time.Sleep(time.Duration(i*i)*time.Minute)
 		i += 1
 	}

@@ -99,3 +99,5 @@ type DailyQueryStruct struct {
 type DailyResponse struct {
 	Query DailyQueryStruct `json:"query"`
 }
+
+
