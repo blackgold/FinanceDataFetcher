@@ -248,6 +248,7 @@ func Daily(tasklist *[]*Task, cfg *config.Config, client *http.Client) []*Task {
 	return errorTasks
 }
 
+<<<<<<< HEAD
 func updateHistoryTable(quote DailyQuoteStruct)  {
 	var dbname string = ""
 
@@ -293,9 +294,6 @@ func RunDaily(cfg *config.Config, client *http.Client) {
 	i := 3
 	for len(tasklist) > 0 {
 		tasklist = Daily(&tasklist, cfg, client)
-		if len(tasklist) == 0 {
-			break
-		}
 		time.Sleep(time.Duration(i*i)*time.Minute)
 		i += 1
 	}

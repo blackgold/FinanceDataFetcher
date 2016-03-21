@@ -4,5 +4,5 @@
   "SymbolsFile" : "symbols/symbols.txt",
   "DbFileName"  : "daily.db",
   "Qps"         : 30,
-  "Type"	: "Daily"
+  "Type"	: "FileSync"
 }

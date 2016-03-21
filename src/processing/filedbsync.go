@@ -7,6 +7,7 @@ import (
 	"os"
 	"sqlite"
 	"strconv"
+	"math/rand"
 )
 
 func readFile(file string) ([]HistoricalQuoteStruct,error) {
@@ -33,10 +34,15 @@ func readDir(dir string) ([]string,error) {
 	if err != nil {
 		return nil,err
 	}
+	//shuffle
+	for i := range list {
+    		j := rand.Intn(i + 1)
+    		list[i], list[j] = list[j], list[i]
+	}
 	return list,nil
 }
 
-func update(partition string, in <- chan string) <-chan bool {
+func update(datadir,partition string, in <- chan string) <-chan bool {
 	out := make(chan bool)
 	var dbname string
 	switch partition {
@@ -49,14 +55,14 @@ func update(partition string, in <- chan string) <-chan bool {
 	case "QZ":
 		dbname = "histoQZ.db"
 	}
-	var db sqlite.Sqlite
-	db.Init(dbname)
-	defer db.Destroy()
 
 	go func() {
+        	var db sqlite.Sqlite
+        	db.Init(dbname)
+        	defer db.Destroy()
 		for file := range in {
-			hql,err := readFile(file)
-			if err != nil {
+			hql,err := readFile(datadir + "/" + file)
+			if err == nil {
 				for _,quote := range hql {
 					o, _ := strconv.ParseFloat(quote.Open, 64)
 					c, _ := strconv.ParseFloat(quote.Close, 64)
@@ -67,7 +73,7 @@ func update(partition string, in <- chan string) <-chan bool {
 					record := &sqlite.DbHistTable{Date: quote.Date, Open: o,
 						Close: c, High: h, Low: l,
 						Volume: v, AdjClose: a}
-					//db.CreateHistTable(quote.Symbol + "daily")
+					db.CreateHistTable(quote.Symbol + "daily")
 					db.InsertHist(record)
 				}
 			} else {
@@ -88,7 +94,7 @@ func splitter(datadir string) (<-chan string,<-chan string,<-chan string,<-chan 
 	qz := make(chan string)
 
 	filelist, err := readDir(datadir)
-	if err == nil {
+	if err != nil {
 		close(ac)
 		close(di)
 		close(jp)
@@ -98,13 +104,13 @@ func splitter(datadir string) (<-chan string,<-chan string,<-chan string,<-chan 
 	go func() {
 		for _, file := range filelist {
 			switch {
-			case file[0] >= 'A' || file[0] <= 'C':
+			case file[0] >= 'A' && file[0] <= 'C':
 					ac <- file
-			case file[0] >= 'D' || file[0] <= 'I':
+			case file[0] >= 'D' && file[0] <= 'I':
 					di <- file
-			case file[0] >= 'J' || file[0] <= 'P' :
+			case file[0] >= 'J' && file[0] <= 'P' :
 					jp <- file
-			case file[0] >= 'Q' || file[0] <= 'Z':
+			case file[0] >= 'Q' && file[0] <= 'Z':
 					qz <- file
 			}
 		}
@@ -116,13 +122,13 @@ func splitter(datadir string) (<-chan string,<-chan string,<-chan string,<-chan 
 	return ac,di,jp,qz
 }
 
-
-func run(datadir string) {
+// pipeline 
+func Run(datadir string) {
 	ac,di,jp,qz := splitter(datadir)
-	c1 := update("AC",ac)
-	c2 := update("DI",di)
-	c3 := update("JP",jp)
-	c4 := update("QZ",qz)
+	c1 := update(datadir,"AC",ac)
+	c2 := update(datadir,"DI",di)
+	c3 := update(datadir,"JP",jp)
+	c4 := update(datadir,"QZ",qz)
 	<-c1
 	<-c2
 	<-c3

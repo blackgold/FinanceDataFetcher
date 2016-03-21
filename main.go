@@ -30,7 +30,9 @@ func main() {
 	}
 	if cfg.Type == "Historical" {
 		processing.RunHistorical(cfg, &client)
-	} else {
+	} else if cfg.Type == "Daily" {
 		processing.RunDaily(cfg, &client)
+	} else {
+		processing.Run("/Users/devendra/development/finance/FinanceDataFetcher/data")
 	}
 }
